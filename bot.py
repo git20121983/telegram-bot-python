@@ -1,59 +1,38 @@
-import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from lardi_parser import fetch_cargo
+from config import BOT_TOKEN
 
-from parser import parse_query
-from lardi_auth import login_lardi, search_lardi
-
-BOT_TOKEN = "8133529792:AAGfz8tC8JhGQe7kMBVi1j_DeBZpeo4wlGk"
-
-# 🔐 ДАННЫЕ LARDI (лучше отдельный аккаунт)
-LARDI_EMAIL = "email@lardi.com"
-LARDI_PASSWORD = "password"
-
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher()
-
-# 🔑 логинимся один раз при старте
-lardi_session = login_lardi(LARDI_EMAIL, LARDI_PASSWORD)
-
-@dp.message(Command("start"))
-async def start_handler(message: types.Message):
-    await message.answer(
-        "🚛 TransEuroLogistics Cargo Bot\n\n"
-        "Пример:\nКиев Львов 20 тонн сегодня"
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🚚 Lardi бот запущен\n\nКоманды:\n/cargo — последние грузы"
     )
 
-@dp.message()
-async def text_handler(message: types.Message):
-    q = parse_query(message.text)
+async def cargo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        cargos = fetch_cargo()
+        if not cargos:
+            await update.message.reply_text("❌ Грузы не найдены")
+            return
 
-    if not q["from"] or not q["to"]:
-        await message.answer("❗ Укажи маршрут: Киев Львов")
-        return
+        text = "📦 Последние грузы:\n\n"
+        for c in cargos:
+            text += (
+                f"📍 {c['from']} → {c['to']}\n"
+                f"📦 {c['cargo']}\n"
+                f"💰 {c['price']}\n\n"
+            )
 
-    await message.answer("🔍 Ищу грузы на Lardi (авторизованно)...")
+        await update.message.reply_text(text)
 
-    cargos = search_lardi(lardi_session, q["from"], q["to"])
+    except Exception as e:
+        await update.message.reply_text(f"Ошибка: {e}")
 
-    if not cargos:
-        await message.answer("❌ Грузы не найдены")
-        return
-
-    text = "🚛 Найденные грузы:\n\n"
-    for c in cargos[:5]:
-        text += (
-            f"{c['from']} → {c['to']}\n"
-            f"Вес: {c['weight']}\n"
-            f"Цена: {c['price']}\n"
-            f"☎️ {c['phone']}\n\n"
-        )
-
-    await message.answer(text)
-
-async def main():
-    await dp.start_polling(bot)
+def main():
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("cargo", cargo))
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
-    
+    main()
