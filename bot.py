@@ -41,8 +41,16 @@ async def text_handler(message: types.Message):
 
         text = f"📦 Найдено грузов: {len(cargos)}\n\n"
         for c in cargos:
-            text += f"▪ {c['title']}\n☎ {c['phone']}\n\n"
+            text = "📦 Найденные грузы:\n\n"
 
+        for i, c in enumerate(cargos, 1):
+            text += (
+            f"#{i}\n"
+            f"📍 {from_city} → {to_city}\n"
+            f"📝 {c['title']}\n"
+            f"☎ Контакт: {c['phone']}\n"
+            f"──────────────\n"
+    )
         await message.answer(text)
 
     except Exception as e:
