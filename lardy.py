@@ -1,4 +1,5 @@
 # lardi.py
+from urllib import response
 import requests
 from bs4 import BeautifulSoup
 
@@ -38,3 +39,7 @@ def search_lardi(from_city, to_city, limit=5, cookies=None):
         })
 
     return cargos
+
+print("STATUS:", response.status_code)
+print("URL:", response.url)
+print("HTML LENGTH:", len(response.text))
