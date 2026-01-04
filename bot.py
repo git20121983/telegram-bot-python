@@ -2,19 +2,22 @@
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
+
 from config import BOT_TOKEN, LARDI_COOKIES, MAX_RESULTS
 from lardy import search_lardi
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
+
 @dp.message(CommandStart())
 async def start(message: types.Message):
     await message.answer(
         "🚛 TransEuroLogistics Cargo Bot\n\n"
-        "Пример запроса:\n"
-        "Киев Львов"
+        "Бот для поиска грузов на Lardi.\n"
+        "Просто напишите что угодно, я покажу актуальные грузы."
     )
+
 
 @dp.message()
 async def text_handler(message: types.Message):
@@ -23,7 +26,7 @@ async def text_handler(message: types.Message):
     cargos = search_lardi(
         from_city="",
         to_city="",
-        limit=5,
+        limit=MAX_RESULTS,
         cookies=LARDI_COOKIES
     )
 
@@ -41,6 +44,10 @@ async def text_handler(message: types.Message):
         )
 
     await message.answer(text)
+
+
+async def main():
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
