@@ -3,7 +3,7 @@ import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from config import BOT_TOKEN, LARDI_COOKIES, MAX_RESULTS
-from lardi import search_lardi
+from lardy import search_lardi
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
