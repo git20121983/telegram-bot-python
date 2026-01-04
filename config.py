@@ -1,25 +1,10 @@
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+LARDI_EMAIL = os.getenv("LARDI_EMAIL")
+LARDI_PASSWORD = os.getenv("LARDI_PASSWORD")
+MAX_RESULTS = int(os.getenv("MAX_RESULTS", 5))
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-LARDI_COOKIES = os.getenv("LARDI_COOKIES")
-LARDI_USER_AGENT = os.getenv("LARDI_USER_AGENT")
+if not BOT_TOKEN:
+    raise RuntimeError("BOT_TOKEN is missing")
 
-HEADERS = {
-    "User-Agent": LARDI_USER_AGENT,
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Cookie": LARDI_COOKIES,
-}
-
-# Telegram
-BOT_TOKEN = "8133529792:AAGfz8tC8JhGQe7kMBVi1j_DeBZpeo4wlGk"
-
-# Lardi (ОБЯЗАТЕЛЬНО отдельный аккаунт)
-LARDI_EMAIL = "Reno3"
-LARDI_PASSWORD = "Katrusya_200680"
-
-# Поведение
-MAX_RESULTS = 5
-REQUEST_TIMEOUT = 20
