@@ -19,27 +19,24 @@ def search_lardi(from_city, to_city, limit=5, cookies=None):
 
     response = session.get(url, timeout=20)
 
-    # ✅ ТЕПЕРЬ ЭТО requests.Response
-    print("STATUS:", response.status_code)
-    print("URL:", response.url)
-    print("HTML LENGTH:", len(response.text))
-
     soup = BeautifulSoup(response.text, "html.parser")
 
     cargos = []
 
-    # Универсальный поиск по строкам таблицы
-    for row in soup.select("tr"):
+    # 🔑 В Lardi грузы — это строки таблицы с данными
+    rows = soup.find_all("tr")
+
+    for row in rows:
+        cols = row.find_all("td")
+        if len(cols) < 5:
+            continue
+
         text = row.get_text(" ", strip=True)
 
-        if (
-            from_city.lower() in text.lower()
-            and to_city.lower() in text.lower()
-        ):
-            cargos.append({
-                "title": text[:300],
-                "phone": "См. на сайте Lardi"
-            })
+        cargos.append({
+            "title": text[:400],
+            "phone": "Откройте груз на Lardi"
+        })
 
         if len(cargos) >= limit:
             break
