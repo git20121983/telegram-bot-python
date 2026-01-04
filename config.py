@@ -1,10 +1,13 @@
-import os
+# config.py
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-LARDI_EMAIL = os.getenv("LARDI_EMAIL")
-LARDI_PASSWORD = os.getenv("LARDI_PASSWORD")
-MAX_RESULTS = int(os.getenv("MAX_RESULTS", 5))
+BOT_TOKEN = "Т8133529792:AAGfz8tC8JhGQe7kMBVi1j_DeBZpeo4wlGk"
 
-if not BOT_TOKEN:
-    raise RuntimeError("BOT_TOKEN is missing")
+LARDI_COOKIES = {
+    "lardi_login": "Reno3",
+    "lardi_mlogin": "eyJkYXRhIjpbeyJsb2dpbiI6IlJlbm8zIiwiYWlkIjoiZjM3Y2NlNmQtNWQ0Mi00NzEyLThmN2UtNTcxMWIzM2QwMzA1IiwidGltZSI6MTc2NzUyMjU1MjExOSwicmVmSWQiOjE4OTI3Njc4NTA4fV19",
+    "LTAID": "f37cce6d-5d42-4712-8f7e-5711b33d0305",
+    "LTSID": "695a40f84fd45a26851f3385",
+    "language": "uk",
+    "lardi_device": "c8a33941-ea2e-4e3e-a68c-a3c84759b07e"
+}
 
