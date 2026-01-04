@@ -12,31 +12,30 @@ HEADERS = {
 def search_lardi(from_city, to_city, limit=5, cookies=None):
     url = "https://lardi-trans.com/ru/gruz/"
 
-    params = {
-        "from": from_city,
-        "to": to_city
-    }
-
     session = requests.Session()
     session.headers.update(HEADERS)
     session.cookies.update(cookies)
 
-    response = session.get(url, params=params, timeout=15)
-
-    if response.status_code != 200:
-        raise Exception(f"Lardi error: {response.status_code}")
+    response = session.get(url, timeout=15)
 
     soup = BeautifulSoup(response.text, "html.parser")
+
     cargos = []
 
-    for card in soup.select(".cargo-item")[:limit]:
-        title = card.select_one(".cargo-title")
-        phone = card.select_one(".phone")
+    # Lardi использует таблицы
+    rows = soup.select("tr")
 
-        cargos.append({
-            "title": title.text.strip() if title else "Без описания",
-            "phone": phone.text.strip() if phone else "Контакт скрыт"
-        })
+    for row in rows:
+        text = row.get_text(" ", strip=True)
+
+        if from_city.lower() in text.lower() and to_city.lower() in text.lower():
+            cargos.append({
+                "title": text[:300],
+                "phone": "См. на сайте"
+            })
+
+        if len(cargos) >= limit:
+            break
 
     return cargos
 
