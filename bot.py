@@ -1,58 +1,51 @@
 import asyncio
+import logging
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
+from aiogram.filters import CommandStart
+from config import BOT_TOKEN
+from lardi import search_lardi
 
-from config import BOT_TOKEN, LARDI_EMAIL, LARDI_PASSWORD, MAX_RESULTS
-from parser import parse_query
-from lardi_client import LardiClient
+logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-lardi = LardiClient(LARDI_EMAIL, LARDI_PASSWORD)
 
-@dp.message(Command("start"))
+@dp.message(CommandStart())
 async def start(message: types.Message):
     await message.answer(
-        "🚛 TransEuroLogistics Cargo Bot\n\n"
+        "🚚 TransEuroLogistics Cargo Bot\n\n"
         "Пример запроса:\n"
-        "Киев Львов 20 тонн 86 кубов сегодня"
+        "Киев Львов 20т 86м3 сегодня"
     )
+
 
 @dp.message()
 async def handle_text(message: types.Message):
-    q = parse_query(message.text)
+    text = message.text.lower()
 
-    if not q["from"] or not q["to"]:
-        await message.answer("❗ Формат: Киев Львов 20 тонн")
+    try:
+        cargos = search_lardi(text)
+    except Exception as e:
+        await message.answer(f"❌ Ошибка поиска: {e}")
         return
-
-    await message.answer(
-        f"🔍 Поиск грузов:\n"
-        f"{q['from'].title()} → {q['to'].title()}\n"
-        f"Дата: {q['date']}"
-    )
-
-    cargos = lardi.search(q["from"], q["to"])
 
     if not cargos:
-        await message.answer("❌ Грузы не найдены")
+        await message.answer("❌ Ничего не найдено")
         return
 
-    reply = "🚛 Найденные грузы:\n\n"
-
-    for c in cargos[:MAX_RESULTS]:
-        reply += (
-            f"{c['from']} → {c['to']}\n"
-            f"Вес: {c['weight']}\n"
-            f"Цена: {c['price']}\n"
-            f"☎️ {c['phone']}\n\n"
+    for c in cargos:
+        await message.answer(
+            f"📦 {c['from']} → {c['to']}\n"
+            f"⚖️ {c['weight']} т | 📐 {c['volume']} м³\n"
+            f"📅 {c['date']}\n"
+            f"📞 {c['phone']}"
         )
 
-    await message.answer(reply)
 
 async def main():
     await dp.start_polling(bot)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
