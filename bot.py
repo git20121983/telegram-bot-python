@@ -18,46 +18,30 @@ async def start(message: types.Message):
 
 @dp.message()
 async def text_handler(message: types.Message):
-    parts = message.text.split()
-    if len(parts) < 2:
-        await message.answer("❗ Введите: Откуда Куда")
-        return
-
-    from_city, to_city = parts[0], parts[1]
-
     await message.answer("🔍 Ищу грузы на Lardi...")
 
-    try:
-        cargos = search_lardi(
-            from_city,
-            to_city,
-            limit=MAX_RESULTS,
-            cookies=LARDI_COOKIES
+    cargos = search_lardi(
+        from_city="",
+        to_city="",
+        limit=5,
+        cookies=LARDI_COOKIES
+    )
+
+    if not cargos:
+        await message.answer("❌ Грузы не найдены")
+        return
+
+    text = "📦 Найденные грузы:\n\n"
+
+    for i, c in enumerate(cargos, 1):
+        text += (
+            f"#{i}\n"
+            f"{c['title']}\n"
+            f"──────────────\n"
         )
 
-        if not cargos:
-            await message.answer("❌ Грузы не найдены")
-            return
+    await message.answer(text)
 
-        text = f"📦 Найдено грузов: {len(cargos)}\n\n"
-        for c in cargos:
-            text = "📦 Найденные грузы:\n\n"
-
-        for i, c in enumerate(cargos, 1):
-            text += (
-            f"#{i}\n"
-            f"📍 {from_city} → {to_city}\n"
-            f"📝 {c['title']}\n"
-            f"☎ Контакт: {c['phone']}\n"
-            f"──────────────\n"
-    )
-        await message.answer(text)
-
-    except Exception as e:
-        await message.answer(f"⚠ Ошибка поиска: {e}")
-
-async def main():
-    await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
