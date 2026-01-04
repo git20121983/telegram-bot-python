@@ -1,48 +1,40 @@
+# lardi.py
 import requests
 from bs4 import BeautifulSoup
-from config import LARDI_EMAIL, LARDI_PASSWORD, MAX_RESULTS
 
-session = requests.Session()
-BASE_URL = "https://lardi-trans.com"
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "Accept-Language": "ru-UA,ru;q=0.9",
+    "Referer": "https://lardi-trans.com/"
+}
 
-
-def login():
-    session.get(f"{BASE_URL}/login")
-
-    payload = {
-        "email": LARDI_EMAIL,
-        "password": LARDI_PASSWORD
-    }
-
-    r = session.post(f"{BASE_URL}/login", data=payload)
-    if r.status_code != 200:
-        raise RuntimeError("Lardi login failed")
-
-
-def search_lardi(text: str):
-    if not session.cookies:
-        login()
+def search_lardi(from_city, to_city, limit=5, cookies=None):
+    url = "https://lardi-trans.com/ru/gruz/"
 
     params = {
-        "search": text
+        "from": from_city,
+        "to": to_city
     }
 
-    r = session.get(f"{BASE_URL}/gruz/search", params=params)
-    r.raise_for_status()
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    session.cookies.update(cookies)
 
-    soup = BeautifulSoup(r.text, "lxml")
-    rows = soup.select(".cargo-row")[:MAX_RESULTS]
+    response = session.get(url, params=params, timeout=15)
 
-    result = []
+    if response.status_code != 200:
+        raise Exception(f"Lardi error: {response.status_code}")
 
-    for row in rows:
-        result.append({
-            "from": row.select_one(".from").text.strip(),
-            "to": row.select_one(".to").text.strip(),
-            "weight": row.select_one(".weight").text.strip(),
-            "volume": row.select_one(".volume").text.strip(),
-            "date": row.select_one(".date").text.strip(),
-            "phone": row.select_one(".phone").text.strip(),
+    soup = BeautifulSoup(response.text, "html.parser")
+    cargos = []
+
+    for card in soup.select(".cargo-item")[:limit]:
+        title = card.select_one(".cargo-title")
+        phone = card.select_one(".phone")
+
+        cargos.append({
+            "title": title.text.strip() if title else "Без описания",
+            "phone": phone.text.strip() if phone else "Контакт скрыт"
         })
 
-    return result
+    return cargos
