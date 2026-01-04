@@ -3,7 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from config import BOT_TOKEN
-from lardi import search_lardi
+from lardy import search_lardi
 
 logging.basicConfig(level=logging.INFO)
 
